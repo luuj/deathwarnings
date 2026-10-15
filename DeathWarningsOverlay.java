@@ -3,13 +3,16 @@ package net.runelite.client.plugins.deathwarnings;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.Perspective;
+import net.runelite.api.Player;
 import net.runelite.api.Point;
 import net.runelite.api.coords.LocalPoint;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -43,14 +46,31 @@ class DeathWarningsOverlay extends Overlay
 			return null;
 		}
 
+		final Player player = client.getLocalPlayer();
+		if (player == null)
+		{
+			return null;
+		}
+
+		final WorldPoint playerLocation = player.getWorldLocation();
+		final int renderDistance = config.renderDistance();
 		final Color border = config.borderColor();
 		final Color fill = config.fillColor();
 		final boolean showTicks = config.showTicks();
 		final boolean fade = config.fade();
 		graphics.setStroke(getStroke(config.borderWidth()));
+		final Font oldFont = graphics.getFont();
+		graphics.setFont(config.font().getFont());
 
 		for (DeathZone zone : plugin.getZones())
 		{
+			// Distance to the nearest edge of the marked area, so large areas aren't cut off early.
+			// distanceTo returns Integer.MAX_VALUE for a different plane.
+			if (zone.getSouthWestTile().distanceTo(playerLocation) - zone.getNpcSize() - zone.getRadius() > renderDistance)
+			{
+				continue;
+			}
+
 			// fromWorld(Client, ...) finds the right world view (top-level or e.g. a boat) for the tile,
 			// and returns null if the tile isn't loaded or is on another plane.
 			LocalPoint southWest = LocalPoint.fromWorld(client, zone.getSouthWestTile());
@@ -87,6 +107,7 @@ class DeathWarningsOverlay extends Overlay
 			}
 		}
 
+		graphics.setFont(oldFont);
 		return null;
 	}
 

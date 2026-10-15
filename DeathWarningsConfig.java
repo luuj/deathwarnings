@@ -6,7 +6,9 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.FontType;
 import net.runelite.client.config.Range;
+import net.runelite.client.config.Units;
 
 @ConfigGroup(DeathWarningsConfig.GROUP)
 public interface DeathWarningsConfig extends Config
@@ -22,7 +24,7 @@ public interface DeathWarningsConfig extends Config
 
 	@ConfigSection(
 		name = "Appearance",
-		description = "How death areas are drawn",
+		description = "How the overlay is drawn",
 		position = 1
 	)
 	String appearanceSection = "appearanceSection";
@@ -60,7 +62,7 @@ public interface DeathWarningsConfig extends Config
 	@ConfigItem(
 		keyName = "borderColor",
 		name = "Border color",
-		description = "Outline color of the death area",
+		description = "Outline color of the marked area",
 		position = 0,
 		section = appearanceSection
 	)
@@ -73,7 +75,7 @@ public interface DeathWarningsConfig extends Config
 	@ConfigItem(
 		keyName = "fillColor",
 		name = "Fill color",
-		description = "Fill color of the death area",
+		description = "Fill color of the marked area",
 		position = 1,
 		section = appearanceSection
 	)
@@ -98,7 +100,7 @@ public interface DeathWarningsConfig extends Config
 	@ConfigItem(
 		keyName = "showTicks",
 		name = "Show ticks remaining",
-		description = "Show how many ticks the death area will stay up",
+		description = "Show how many ticks each marked area will stay up",
 		position = 3,
 		section = appearanceSection
 	)
@@ -110,12 +112,38 @@ public interface DeathWarningsConfig extends Config
 	@ConfigItem(
 		keyName = "fade",
 		name = "Fade out",
-		description = "Fade the area as its duration runs out",
+		description = "Fade the areas as their duration runs out",
 		position = 4,
 		section = appearanceSection
 	)
 	default boolean fade()
 	{
 		return false;
+	}
+
+	@ConfigItem(
+		keyName = "font",
+		name = "Font",
+		description = "Font used for the overlay text",
+		position = 5,
+		section = appearanceSection
+	)
+	default FontType font()
+	{
+		return FontType.BOLD.withSize(16);
+	}
+
+	@Range(min = 1, max = 20)
+	@Units(" tiles")
+	@ConfigItem(
+		keyName = "renderDistance",
+		name = "Render distance",
+		description = "Only draw within this many tiles of your player",
+		position = 6,
+		section = appearanceSection
+	)
+	default int renderDistance()
+	{
+		return 20;
 	}
 }
