@@ -1,0 +1,114 @@
+package net.runelite.client.plugins.deathwarnings;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import javax.inject.Inject;
+import net.runelite.api.Client;
+import net.runelite.api.Perspective;
+import net.runelite.api.Point;
+import net.runelite.api.coords.LocalPoint;
+import net.runelite.client.ui.overlay.Overlay;
+import net.runelite.client.ui.overlay.OverlayLayer;
+import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.client.ui.overlay.OverlayUtil;
+
+class DeathWarningsOverlay extends Overlay
+{
+	private final Client client;
+	private final DeathWarningsPlugin plugin;
+	private final DeathWarningsConfig config;
+
+	private BasicStroke stroke;
+	private int strokeWidth = -1;
+
+	@Inject
+	private DeathWarningsOverlay(Client client, DeathWarningsPlugin plugin, DeathWarningsConfig config)
+	{
+		this.client = client;
+		this.plugin = plugin;
+		this.config = config;
+		setPosition(OverlayPosition.DYNAMIC);
+		setLayer(OverlayLayer.ABOVE_SCENE);
+		setPriority(PRIORITY_MED);
+	}
+
+	@Override
+	public Dimension render(Graphics2D graphics)
+	{
+		if (plugin.getZones().isEmpty())
+		{
+			return null;
+		}
+
+		final Color border = config.borderColor();
+		final Color fill = config.fillColor();
+		final boolean showTicks = config.showTicks();
+		final boolean fade = config.fade();
+		graphics.setStroke(getStroke(config.borderWidth()));
+
+		for (DeathZone zone : plugin.getZones())
+		{
+			// fromWorld(Client, ...) finds the right world view (top-level or e.g. a boat) for the tile,
+			// and returns null if the tile isn't loaded or is on another plane.
+			LocalPoint southWest = LocalPoint.fromWorld(client, zone.getSouthWestTile());
+			if (southWest == null)
+			{
+				continue;
+			}
+
+			// Shift to the square's south-west tile, then to the square's centre, which is what
+			// getCanvasTileAreaPoly expects.
+			int areaSize = zone.getAreaSize();
+			int offset = -zone.getSouthWestOffsetTiles() * Perspective.LOCAL_TILE_SIZE
+				+ (areaSize - 1) * Perspective.LOCAL_HALF_TILE_SIZE;
+			LocalPoint center = southWest.plus(offset, offset);
+
+			Polygon poly = Perspective.getCanvasTileAreaPoly(client, center, areaSize);
+			if (poly == null)
+			{
+				continue;
+			}
+
+			double alphaScale = fade ? (double) zone.getTicksRemaining() / zone.getTotalTicks() : 1.0;
+			graphics.setColor(scaleAlpha(fill, alphaScale));
+			graphics.fill(poly);
+			graphics.setColor(scaleAlpha(border, alphaScale));
+			graphics.draw(poly);
+
+			if (showTicks)
+			{
+				String text = Integer.toString(zone.getTicksRemaining());
+				Point textLoc = Perspective.getCanvasTextLocation(client, graphics, center, text, 0);
+				if (textLoc != null)
+				{
+					OverlayUtil.renderTextLocation(graphics, textLoc, text, Color.WHITE);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private BasicStroke getStroke(int width)
+	{
+		if (stroke == null || strokeWidth != width)
+		{
+			stroke = new BasicStroke(width);
+			strokeWidth = width;
+		}
+		return stroke;
+	}
+
+	private static Color scaleAlpha(Color color, double scale)
+	{
+		if (scale >= 1.0)
+		{
+			return color;
+		}
+		int alpha = (int) Math.round(color.getAlpha() * Math.max(0.0, scale));
+		return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
+	}
+}
