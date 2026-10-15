@@ -39,7 +39,7 @@ import net.runelite.client.util.Text;
 public class DeathWarningsPlugin extends Plugin
 {
 	private static final Splitter LINE_SPLITTER = Splitter.on('\n').omitEmptyStrings().trimResults();
-	private static final int MAX_SIZE = 15;
+	private static final int MAX_RADIUS = 7;
 	private static final int MAX_TICKS = 100;
 
 	@Inject
@@ -153,7 +153,7 @@ public class DeathWarningsPlugin extends Plugin
 		WorldPoint trueTile = npc.getWorldLocation();
 		NPCComposition composition = npc.getTransformedComposition();
 		int size = composition != null ? composition.getSize() : 1;
-		zones.add(new DeathZone(trueTile, size, rule.getSize(), rule.getTicks()));
+		zones.add(new DeathZone(trueTile, size, rule.getRadius(), rule.getTicks()));
 	}
 
 	private void rebuildRules()
@@ -171,11 +171,11 @@ public class DeathWarningsPlugin extends Plugin
 			}
 
 			String key = parts[0].trim();
-			int size;
+			int radius;
 			int ticks;
 			try
 			{
-				size = Integer.parseInt(parts[1].trim());
+				radius = Integer.parseInt(parts[1].trim());
 				ticks = Integer.parseInt(parts[2].trim());
 			}
 			catch (NumberFormatException ex)
@@ -184,13 +184,13 @@ public class DeathWarningsPlugin extends Plugin
 				continue;
 			}
 
-			if (key.isEmpty() || size < 0 || size > MAX_SIZE || ticks < 1 || ticks > MAX_TICKS)
+			if (key.isEmpty() || radius < 0 || radius > MAX_RADIUS || ticks < 1 || ticks > MAX_TICKS)
 			{
 				log.warn("Ignoring out-of-range death warning entry: {}", line);
 				continue;
 			}
 
-			DeathRule rule = new DeathRule(size, ticks);
+			DeathRule rule = new DeathRule(radius, ticks);
 			if (key.chars().allMatch(Character::isDigit))
 			{
 				rulesById.put(Integer.parseInt(key), rule);

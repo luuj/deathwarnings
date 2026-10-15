@@ -59,14 +59,12 @@ class DeathWarningsOverlay extends Overlay
 				continue;
 			}
 
-			// Shift to the square's south-west tile, then to the square's centre, which is what
-			// getCanvasTileAreaPoly expects.
-			int areaSize = zone.getAreaSize();
-			int offset = -zone.getSouthWestOffsetTiles() * Perspective.LOCAL_TILE_SIZE
-				+ (areaSize - 1) * Perspective.LOCAL_HALF_TILE_SIZE;
+			// Centre of the NPC's footprint. The radius grows the square evenly on every side,
+			// so the centre doesn't move.
+			int offset = (zone.getNpcSize() - 1) * Perspective.LOCAL_HALF_TILE_SIZE;
 			LocalPoint center = southWest.plus(offset, offset);
 
-			Polygon poly = Perspective.getCanvasTileAreaPoly(client, center, areaSize);
+			Polygon poly = Perspective.getCanvasTileAreaPoly(client, center, zone.getAreaSize());
 			if (poly == null)
 			{
 				continue;

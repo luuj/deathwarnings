@@ -12,32 +12,23 @@ class DeathZone
 	/** South-west tile of the NPC's footprint when it died. */
 	private final WorldPoint southWestTile;
 	private final int npcSize;
-	/** Side length in tiles of the square drawn, like AoE Warnings' size (3 = 3x3). 0 = the NPC's own footprint. */
-	private final int size;
+	/** Tiles added outward on every side of the NPC's footprint (0 = just the footprint). */
+	private final int radius;
 	private final int totalTicks;
 	int ticksRemaining;
 
-	DeathZone(WorldPoint southWestTile, int npcSize, int size, int ticks)
+	DeathZone(WorldPoint southWestTile, int npcSize, int radius, int ticks)
 	{
 		this.southWestTile = southWestTile;
 		this.npcSize = npcSize;
-		this.size = size;
+		this.radius = radius;
 		this.totalTicks = ticks;
 		this.ticksRemaining = ticks;
 	}
 
+	/** Side length in tiles of the square drawn: the footprint plus the radius on every side. */
 	int getAreaSize()
 	{
-		return size == 0 ? npcSize : size;
-	}
-
-	/**
-	 * Tiles to shift west/south from the NPC's south-west tile so the square is centred on the NPC's
-	 * footprint. When the sizes differ by an odd number the square leans one tile to the north-east,
-	 * so it always lines up with real tiles.
-	 */
-	int getSouthWestOffsetTiles()
-	{
-		return Math.floorDiv(getAreaSize() - npcSize, 2);
+		return npcSize + 2 * radius;
 	}
 }

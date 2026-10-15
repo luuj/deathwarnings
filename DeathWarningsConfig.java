@@ -30,9 +30,9 @@ public interface DeathWarningsConfig extends Config
 	@ConfigItem(
 		keyName = "npcList",
 		name = "NPC list",
-		description = "One entry per line: NPC name or ID, size, duration in ticks. "
-			+ "Size works like AoE Warnings: 1 = one tile, 3 = 3x3, centred on the NPC (0 = the NPC's own footprint). "
-			+ "Example: Nylocas Matomenos, 3, 4",
+		description = "One entry per line: NPC name or ID, radius, duration in ticks. "
+			+ "Radius is tiles outward from the NPC's footprint, up to 7: 0 = just the tiles it occupied, "
+			+ "1 on a one-tile NPC = 3x3. Example: Nylocas Matomenos, 1, 4",
 		position = 0,
 		section = npcSection
 	)
