@@ -30,15 +30,30 @@ public interface DeathWarningsConfig extends Config
 	@ConfigItem(
 		keyName = "npcList",
 		name = "NPC list",
-		description = "One entry per line: NPC name or ID, radius, duration in ticks. "
-			+ "Radius is tiles outward from the NPC's footprint, up to 7: 0 = just the tiles it occupied, "
-			+ "1 on a one-tile NPC = 3x3. Example: Nylocas Matomenos, 1, 4",
+		description = "One entry per line: NPC name or ID, radius, duration in ticks, then optionally an XP multiplier "
+			+ "and a max HP. Radius is tiles outward from the NPC's footprint, up to 7: 0 = just the tiles it occupied, "
+			+ "1 on a one-tile NPC = 3x3. XP multiplier is only for NPCs that give bonus combat XP (default 1). "
+			+ "Max HP is only needed for NPCs RuneLite has no HP data for. "
+			+ "Names can use * as a wildcard. Example: *demonic*larva*, 1, 2",
 		position = 0,
 		section = npcSection
 	)
 	default String npcList()
 	{
 		return "";
+	}
+
+	@ConfigItem(
+		keyName = "predictDeaths",
+		name = "Predict deaths",
+		description = "Mark the area as soon as your own hit is known to be lethal (from your XP drop), "
+			+ "before the hitsplat and death animation. Only your own hits are predicted.",
+		position = 1,
+		section = npcSection
+	)
+	default boolean predictDeaths()
+	{
+		return true;
 	}
 
 	@Alpha
